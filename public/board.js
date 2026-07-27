@@ -120,15 +120,19 @@ function renderBetting() {
 
     <div id="trk" style="margin-top:22px">${buildTrack(g)}</div>
 
-    <h2 style="margin-top:26px">เดิมพันตัวมาสคอต</h2>
-    <div class="stackcol">${mascotStacks}</div>
-
-    <div class="sidebet divider">
-      <p class="eyebrow" style="margin:0 0 4px">คำถามเดิมพันพิเศษของเรซนี้</p>
-      <div class="q">${esc(g.sideBet.th)}</div>
-    </div>
-
-    <div class="stackcol">${sideStacks}</div>`;
+    <div class="betcols">
+      <div class="betcol">
+        <h2>เดิมพันตัวมาสคอต</h2>
+        <div class="stackcol">${mascotStacks}</div>
+      </div>
+      <div class="betcol">
+        <div class="sidebet divider" style="margin-top:0">
+          <p class="eyebrow" style="margin:0 0 4px">คำถามเดิมพันพิเศษของเรซนี้</p>
+          <div class="q">${esc(g.sideBet.th)}</div>
+        </div>
+        <div class="stackcol">${sideStacks}</div>
+      </div>
+    </div>`;
   updateTrack({ track: g.track, mascots: startMascots });
 }
 
