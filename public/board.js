@@ -71,35 +71,31 @@ function renderBetting() {
   trackKey = null;
   const turnName = g.players.find((p) => p.id === d.currentPlayerId)?.name ?? '';
 
-  const stacks = ORDER.concat(['YES', 'NO']).map((k) => {
+  const stackBlock = (k) => {
     const arr = g.stacks[k] || [];
     if (!arr.length) return `<div class="stack-empty">${k === 'YES' ? 'ใช่' : k === 'NO' ? 'ไม่ใช่' : M[k].th} — หมดแล้ว</div>`;
     return `<div>
       ${ticketEl(arr[0])}
       <div style="font-size:11px;color:var(--chalk-dim);margin:3px 0 0 12px">เหลือในกอง ${arr.length} ใบ</div>
     </div>`;
-  }).join('');
+  };
+  const mascotStacks = ORDER.map(stackBlock).join('');
+  const sideStacks = ['YES', 'NO'].map(stackBlock).join('');
 
   app.innerHTML = `
-    <div class="sidebet">
+    <p class="eyebrow center">ตาของ</p>
+    <h1 class="center" style="margin-bottom:14px">${esc(turnName)}</h1>
+    ${seatTable(g.players, d.currentPlayerId)}
+
+    <h2 style="margin-top:26px">เดิมพันตัวมาสคอต</h2>
+    <div class="stackcol">${mascotStacks}</div>
+
+    <div class="sidebet divider">
       <p class="eyebrow" style="margin:0 0 4px">คำถามเดิมพันพิเศษของเรซนี้</p>
       <div class="q">${esc(g.sideBet.th)}</div>
     </div>
-    <h2>กำลังรอ ${esc(turnName)} เลือกตั๋ว</h2>
-    <div class="stackcol">${stacks}</div>
 
-    <h2 style="margin-top:22px">ผู้เล่น</h2>
-    <div class="plist">
-      ${g.players.map((p) => `
-        <div class="prow ${p.id === d.currentPlayerId ? 'turn' : ''}">
-          <div class="prow-top">
-            <span class="pn">${esc(p.name)}</span>
-            <span class="tag">${p.tickets.length} ใบ</span>
-            <span class="pm">$${p.money}</span>
-          </div>
-          ${p.tickets.length ? `<div class="tbadges">${p.tickets.map(ticketBadge).join('')}</div>` : ''}
-        </div>`).join('')}
-    </div>`;
+    <div class="stackcol">${sideStacks}</div>`;
 }
 
 function renderSubmit() {

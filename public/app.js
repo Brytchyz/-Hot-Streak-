@@ -142,24 +142,30 @@ function renderBetting() {
   const myTurn = d.currentPlayerId === S.yourId;
   const turnName = g.players.find((p) => p.id === d.currentPlayerId)?.name ?? '';
 
-  const stacks = ORDER.concat(['YES', 'NO']).map((k) => {
+  const stackButton = (k) => {
     const arr = g.stacks[k] || [];
     if (!arr.length) return `<div class="stack-empty">${k === 'YES' ? 'ใช่' : k === 'NO' ? 'ไม่ใช่' : M[k].th} — หมดแล้ว</div>`;
     return `<button style="all:unset;display:block" data-stack="${k}">
       ${ticketEl(arr[0], { pickable: myTurn })}
       ${arr.length > 1 ? `<div style="font-size:11px;color:var(--chalk-dim);margin:3px 0 0 12px">เหลืออีก ${arr.length - 1} ใบในกอง</div>` : ''}
     </button>`;
-  }).join('');
+  };
+  const mascotStacks = ORDER.map(stackButton).join('');
+  const sideStacks = ['YES', 'NO'].map(stackButton).join('');
 
   app.innerHTML = `
-    <div class="sidebet">
+    <p class="eyebrow">${myTurn ? 'ตาคุณเลือกตั๋ว' : 'กำลังรอ ' + esc(turnName)}</p>
+    <h2>${myTurn ? 'หยิบตั๋ว 1 ใบจากกองไหนก็ได้' : 'สนามพนัน'}</h2>
+    <button class="btn ghost sm" id="peek" style="margin-bottom:16px">ดูสำรับ / ไพ่ในมือ ก่อนแทง</button>
+
+    <div class="stackcol">${mascotStacks}</div>
+
+    <div class="sidebet divider">
       <p class="eyebrow" style="margin:0 0 4px">คำถามเดิมพันพิเศษของเรซนี้</p>
       <div class="q">${esc(g.sideBet.th)}</div>
     </div>
-    <button class="btn ghost sm" id="peek" style="margin-bottom:16px">ดูสำรับ / ไพ่ในมือ ก่อนแทง</button>
-    <p class="eyebrow">${myTurn ? 'ตาคุณเลือกตั๋ว' : 'กำลังรอ ' + esc(turnName)}</p>
-    <h2>${myTurn ? 'หยิบตั๋ว 1 ใบจากกองไหนก็ได้' : 'สนามพนัน'}</h2>
-    <div class="stackcol">${stacks}</div>
+
+    <div class="stackcol">${sideStacks}</div>
 
     <h2 style="margin-top:22px">ตั๋วในมือคุณ</h2>
     ${(S.you.tickets || []).length

@@ -123,12 +123,13 @@ input.code{
 .ticket .tk-body{flex:1;min-width:0}
 .ticket .tk-name{font-family:var(--disp);font-weight:700;font-size:15px;line-height:1.2}
 .ticket .tk-size{font-size:11px;color:#6B665A;letter-spacing:.04em}
-.ticket .tk-nums{display:flex;gap:7px;font-family:var(--disp);font-variant-numeric:tabular-nums}
-.ticket .tk-num{text-align:center;min-width:30px}
-.ticket .tk-num b{display:block;font-size:17px;font-weight:700;line-height:1.1}
-.ticket .tk-num span{font-size:9px;color:#6B665A;letter-spacing:.06em}
+.ticket .tk-nums{display:flex;flex-direction:column;gap:2px;font-family:var(--disp);font-variant-numeric:tabular-nums;min-width:92px}
+.ticket .tk-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px dashed rgba(34,32,26,.14)}
+.ticket .tk-row:last-child{border-bottom:0}
+.ticket .tk-place{font-size:10px;color:#6B665A;letter-spacing:.06em}
+.ticket .tk-amt{font-size:16px;font-weight:700}
 .ticket.risky{background:#F3D9C4}
-.ticket.risky .tk-num b{color:#B33A18}
+.ticket.risky .tk-amt{color:#B33A18}
 .ticket.dead{opacity:.32;pointer-events:none}
 .ticket.pickable{box-shadow:0 0 0 2px var(--amber)}
 .ticket .tk-badge{
@@ -270,6 +271,7 @@ input.code{
 }
 .sidebet .q{font-family:var(--disp);font-weight:600;font-size:15px;line-height:1.35}
 .sidebet .a{margin-top:7px;font-family:var(--disp);font-weight:700;font-size:15px;color:var(--amber)}
+.sidebet.divider{margin:20px 0}
 
 /* ---------- bottom dock ---------- */
 .dock{

@@ -7,3 +7,26 @@ body{ padding-bottom:0; }
 }
 #app.board h1{ font-size:34px; }
 #app.board .deckgrid{ grid-template-columns:repeat(4,1fr); }
+
+/* ---------- โต๊ะโป๊กเกอร์ ---------- */
+.table-oval{
+  position:relative;
+  width:100%;max-width:760px;aspect-ratio:16/9;margin:0 auto;
+  background:radial-gradient(ellipse at center,var(--turf-lit) 0%,var(--turf) 70%);
+  border-radius:50%;
+  box-shadow:inset 0 0 0 10px rgba(0,0,0,.18),0 4px 18px rgba(0,0,0,.35);
+}
+.seat{
+  position:absolute;top:0;left:0;transform:translate(-50%,-50%);
+  width:168px;padding:10px 12px;text-align:center;
+  background:rgba(240,237,225,.07);border:1px solid rgba(240,237,225,.14);
+  border-radius:var(--r);backdrop-filter:blur(2px);
+}
+.seat.turn{
+  background:rgba(245,179,29,.16);
+  box-shadow:0 0 0 2px var(--amber),0 0 22px rgba(245,179,29,.5);
+}
+.seat-name{font-family:var(--disp);font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seat-money{font-family:var(--disp);font-weight:700;font-size:13px;color:var(--amber);margin-top:2px}
+.seat-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:7px}
+.seat-badges.muted{color:var(--chalk-dim);font-size:11px;margin-top:6px}

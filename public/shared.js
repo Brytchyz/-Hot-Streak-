@@ -91,7 +91,7 @@ function ticketEl(t, { mode = null, pickable = false, badge = null } = {}) {
         <span class="tk-size">${SIZE_TH[t.size]}</span>
       </span>
       <span class="tk-nums">
-        ${v.map((n, i) => `<span class="tk-num"><b>${n < 0 ? '−$' + -n : '$' + n}</b><span>${labels[i]}</span></span>`).join('')}
+        ${v.map((n, i) => `<span class="tk-row"><span class="tk-place">${labels[i]}</span><span class="tk-amt">${n < 0 ? '−$' + -n : '$' + n}</span></span>`).join('')}
       </span>
     </div>`;
 }
@@ -101,6 +101,23 @@ function ticketBadge(t) {
   const name = isMascot ? M[t.mascot].th : (t.answer === 'YES' ? 'ใช่' : 'ไม่ใช่');
   const hex = isMascot ? M[t.mascot].hex : (t.answer === 'YES' ? '#3E7A4E' : '#8A5A2B');
   return `<span class="tbadge ${t.mode === 'risky' ? 'risky' : ''}" style="--c:${hex}">${name} · ${SIZE_TH[t.size]}${t.mode === 'risky' ? ' · เสี่ยง' : ''}</span>`;
+}
+
+/* ---------------- โต๊ะโป๊กเกอร์ (จอบอร์ด) ---------------- */
+function seatTable(players, currentId) {
+  const n = players.length;
+  const seats = players.map((p, i) => {
+    const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+    const x = 50 + 46 * Math.cos(angle);
+    const y = 50 + 42 * Math.sin(angle);
+    return `
+      <div class="seat ${p.id === currentId ? 'turn' : ''}" style="left:${x}%;top:${y}%">
+        <div class="seat-name">${esc(p.name)}</div>
+        <div class="seat-money">$${p.money}</div>
+        ${p.tickets?.length ? `<div class="seat-badges">${p.tickets.map(ticketBadge).join('')}</div>` : '<div class="seat-badges muted">ยังไม่แทง</div>'}
+      </div>`;
+  }).join('');
+  return `<div class="table-oval">${seats}</div>`;
 }
 
 function deckGrid(deck) {
