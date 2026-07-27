@@ -32,9 +32,8 @@ function newCode() {
 class Room {
   constructor(code) {
     this.code = code;
-    this.players = [];   // { id, name, socketId, connected }
-    this.spectators = []; // socketId ของจอบอร์ด — ดูอย่างเดียว ไม่มี identity/tickets/hand
-    this.hostId = null;
+    this.players = [];   // { id, name, socketId, connected } — ไม่รวมเจ้ามือ
+    this.hostSocketId = null; // จอเจ้ามือ (บอร์ด) — คุมเกมได้ แต่ไม่ใช่ผู้เล่น
     this.game = null;
     this.autoplay = false;
     this.timer = null;
@@ -49,7 +48,6 @@ class Room {
     if (existing) return existing;
     const p = { id: playerId, name, socketId: null, connected: false };
     this.players.push(p);
-    if (!this.hostId) this.hostId = p.id;
     return p;
   }
 
@@ -70,7 +68,6 @@ class Room {
   lobbyState() {
     return {
       code: this.code,
-      hostId: this.hostId,
       started: !!this.game,
       joinUrl: this.joinUrl,
       qr: this.qr,
@@ -90,13 +87,13 @@ class Room {
         game: pub,
         you: this.game ? this.game.privateState(p.id) : null,
         yourId: p.id,
-        isHost: p.id === this.hostId,
+        isHost: false,
         autoplay: this.autoplay,
       });
     }
-    for (const sid of this.spectators) {
-      io.to(sid).emit('state', {
-        lobby, game: pub, you: null, yourId: null, isHost: false, autoplay: this.autoplay,
+    if (this.hostSocketId) {
+      io.to(this.hostSocketId).emit('state', {
+        lobby, game: pub, you: null, yourId: null, isHost: true, autoplay: this.autoplay,
       });
     }
   }
@@ -128,17 +125,27 @@ class Room {
 io.on('connection', (socket) => {
   let room = null;
   let me = null;
-  let isSpectator = false;
+  let isHostCtrl = false;
 
   const fail = (msg) => socket.emit('err', msg);
 
-  socket.on('watch', ({ code }) => {
-    const r = rooms.get((code || '').toUpperCase().trim());
-    if (!r) return fail('ไม่พบห้องนี้ ลองเช็ครหัสอีกที');
+  // จอเจ้ามือ (บอร์ด) — สร้างห้องใหม่ (ไม่ส่ง code) หรือกลับมาคุมห้องเดิม (ส่ง code)
+  // เจ้ามือไม่ใช่ผู้เล่น ไม่มีชื่อในลิสต์ ไม่มีไพ่ ไม่มีตั๋ว
+  socket.on('host', async ({ code, origin }) => {
+    let r;
+    if (code) {
+      r = rooms.get((code || '').toUpperCase().trim());
+      if (!r) return fail('ไม่พบห้องนี้ ลองเช็ครหัสอีกที');
+    } else {
+      r = new Room(newCode());
+      rooms.set(r.code, r);
+    }
+    await r.setOrigin(origin);
     room = r;
-    isSpectator = true;
-    r.spectators.push(socket.id);
+    isHostCtrl = true;
+    r.hostSocketId = socket.id;
     socket.join(r.code);
+    socket.emit('joined', { code: r.code });
     r.broadcast();
   });
 
@@ -152,14 +159,6 @@ io.on('connection', (socket) => {
     r.broadcast();
   };
 
-  socket.on('create', async ({ name, playerId, origin }) => {
-    if (!name || !name.trim()) return fail('ใส่ชื่อก่อนนะ');
-    const r = new Room(newCode());
-    rooms.set(r.code, r);
-    await r.setOrigin(origin);
-    attach(r, r.addPlayer(name.trim().slice(0, 14), playerId));
-  });
-
   socket.on('join', async ({ code, name, playerId, origin }) => {
     const r = rooms.get((code || '').toUpperCase().trim());
     if (!r) return fail('ไม่พบห้องนี้ ลองเช็ครหัสอีกที');
@@ -172,22 +171,28 @@ io.on('connection', (socket) => {
     attach(r, r.addPlayer(name.trim().slice(0, 14), playerId));
   });
 
+  // การกระทำของผู้เล่น (แทงพนัน/ใส่ไพ่) — ต้องเป็นผู้เล่นในห้อง
   const guard = (fn) => (...args) => {
     if (!room || !me) return fail('ยังไม่ได้เข้าห้อง');
     try { fn(...args); room.broadcast(); }
     catch (e) { fail(e.message); }
   };
 
-  socket.on('start', guard(() => {
-    if (me.id !== room.hostId) throw new Error('เฉพาะเจ้าของห้องเท่านั้น');
+  // การกระทำของเจ้ามือ (คุมเกม) — ต้องเป็นซ็อกเก็ตที่ถือสิทธิ์เจ้ามือของห้องนี้
+  const hostGuard = (fn) => (...args) => {
+    if (!room || !isHostCtrl || room.hostSocketId !== socket.id) return fail('เฉพาะเจ้ามือเท่านั้น');
+    try { fn(...args); room.broadcast(); }
+    catch (e) { fail(e.message); }
+  };
+
+  socket.on('start', hostGuard(() => {
     if (room.game) throw new Error('เริ่มไปแล้ว');
     if (room.players.length < 2) throw new Error('ต้องมีอย่างน้อย 2 คน');
     room.game = new Game(room.players.map((p) => ({ id: p.id, name: p.name })));
     room.game.start();
   }));
 
-  socket.on('kick', guard(({ playerId }) => {
-    if (me.id !== room.hostId) throw new Error('เฉพาะเจ้าของห้องเท่านั้น');
+  socket.on('kick', hostGuard(({ playerId }) => {
     if (room.game) throw new Error('เริ่มเกมแล้วเอาออกไม่ได้');
     room.players = room.players.filter((p) => p.id !== playerId);
   }));
@@ -197,40 +202,31 @@ io.on('connection', (socket) => {
   socket.on('submit', guard(({ uids }) => room.game.submitCards(me.id, uids)));
   socket.on('double', guard(({ ticketId }) => room.game.setDouble(me.id, ticketId)));
 
-  socket.on('flip', guard(() => {
-    if (me.id !== room.hostId) throw new Error('ให้เจ้ามือเปิดไพ่');
-    room.game.flip();
-  }));
+  socket.on('flip', hostGuard(() => room.game.flip()));
 
-  socket.on('auto', guard(({ on, speed }) => {
-    if (me.id !== room.hostId) throw new Error('ให้เจ้ามือคุมจังหวะ');
+  socket.on('auto', hostGuard(({ on, speed }) => {
     if (on) room.startAuto(speed || 1800); else room.stopAuto();
   }));
 
-  socket.on('next', guard(() => {
-    if (me.id !== room.hostId) throw new Error('เฉพาะเจ้าของห้องเท่านั้น');
-    room.game.nextRace();
-  }));
+  socket.on('next', hostGuard(() => room.game.nextRace()));
 
-  socket.on('rematch', guard(() => {
-    if (me.id !== room.hostId) throw new Error('เฉพาะเจ้าของห้องเท่านั้น');
+  socket.on('rematch', hostGuard(() => {
     room.stopAuto();
     room.game = new Game(room.players.map((p) => ({ id: p.id, name: p.name })));
     room.game.start();
   }));
 
-  // จบเกม — เจ้ามือปิดห้องนี้ถาวร ทุกคน (ผู้เล่น+จอบอร์ด) เด้งกลับหน้าแรก
+  // จบเกม — เจ้ามือปิดห้องนี้ถาวร ทุกคน (ผู้เล่น+จอเจ้ามือ) เด้งกลับหน้าแรก
   socket.on('end', () => {
-    if (!room || !me) return fail('ยังไม่ได้เข้าห้อง');
-    if (me.id !== room.hostId) return fail('เฉพาะเจ้าของห้องเท่านั้น');
+    if (!room || !isHostCtrl || room.hostSocketId !== socket.id) return fail('เฉพาะเจ้ามือเท่านั้น');
     room.stopAuto();
     io.to(room.code).emit('ended');
     rooms.delete(room.code);
   });
 
   socket.on('disconnect', () => {
-    if (isSpectator) {
-      if (room) room.spectators = room.spectators.filter((sid) => sid !== socket.id);
+    if (isHostCtrl) {
+      if (room && room.hostSocketId === socket.id) room.hostSocketId = null;
       return;
     }
     if (!room || !me) return;

@@ -85,17 +85,14 @@ function renderHome() {
            <button class="btn" id="jn">เข้าห้อง ${inviteCode}</button>
            <button class="btn ghost sm" id="other">เข้าห้องอื่นแทน</button>
          </div>`
-      : `<p class="sub">เปิดในมือถือทุกคน ไพ่ในมือใครในมือมัน สนามแข่งเห็นพร้อมกัน</p>
+      : `<p class="sub">สแกน QR จากจอเจ้ามือ หรือใส่รหัสห้องเองด้านล่าง</p>
          <div class="stack">
            <input id="nm" placeholder="ชื่อของคุณ" maxlength="14" value="${esc(savedName())}">
-           <button class="btn" id="mk">สร้างห้องใหม่</button>
-           <p class="eyebrow center" style="margin:8px 0 0">หรือเข้าห้องที่มีอยู่</p>
            <input id="cd" class="code" placeholder="รหัส" maxlength="4" autocomplete="off">
-           <button class="btn ghost" id="jn">เข้าห้อง</button>
+           <button class="btn" id="jn">เข้าห้อง</button>
          </div>`}`;
 
   const name = () => { const v = $('#nm').value.trim(); if (v) localStorage.setItem('hs_name', v); return v; };
-  if ($('#mk')) $('#mk').onclick = () => send('create', { name: name(), playerId: pid, origin: ORIGIN });
   $('#jn').onclick = () => send('join', {
     code: invited ? inviteCode : $('#cd').value, name: name(), playerId: pid, origin: ORIGIN,
   });
@@ -122,23 +119,13 @@ function renderLobby() {
         <div class="prow ${p.connected ? '' : 'off'}">
           <div class="prow-top">
             <span class="pn">${esc(p.name)}</span>
-            ${p.id === L.hostId ? '<span class="tag ok">เจ้ามือ</span>' : ''}
             ${p.connected ? '' : '<span class="tag">หลุด</span>'}
-            ${S.isHost && p.id !== L.hostId ? `<button class="tag" data-kick="${p.id}">เอาออก</button>` : ''}
           </div>
         </div>`).join('')}
     </div>
     <div class="dock"><div class="dock-inner">
-      ${S.isHost
-        ? `<button class="btn" id="go" ${L.players.length < 2 ? 'disabled' : ''}>
-             ${L.players.length < 2 ? 'รออีกอย่างน้อย 1 คน' : `เริ่มเกม (${L.players.length} คน)`}
-           </button>`
-        : `<p class="center muted" style="margin:0">รอเจ้ามือกดเริ่มเกม</p>`}
+      <p class="center muted" style="margin:0">รอเจ้ามือกดเริ่มเกม</p>
     </div></div>`;
-  if ($('#go')) $('#go').onclick = () => send('start');
-  app.querySelectorAll('[data-kick]').forEach((b) => {
-    b.onclick = () => send('kick', { playerId: b.dataset.kick });
-  });
 }
 
 function renderBetting() {
@@ -347,14 +334,7 @@ function renderRacing() {
     : `<div class="flipcard empty">3… 2… 1… เผาไพ่ 3 ใบแล้ว พร้อมออกตัว</div>`;
   $('#fd').innerHTML = (g.feed || []).map(feedLine).filter(Boolean)
     .map((l) => `<div class="${l.cls}">${l.txt}</div>`).join('');
-  $('#dk').innerHTML = S.isHost
-    ? `<div class="row">
-         <button class="btn" id="fl" ${S.autoplay ? 'disabled' : ''}>เปิดไพ่ใบต่อไป</button>
-         <button class="btn ghost" id="au" style="flex:0 0 42%">${S.autoplay ? 'หยุดอัตโนมัติ' : 'เล่นอัตโนมัติ'}</button>
-       </div>`
-    : `<p class="center muted" style="margin:0">เจ้ามือกำลังเปิดไพ่ · ตะโกนได้ตามสบาย</p>`;
-  if ($('#fl')) $('#fl').onclick = () => send('flip');
-  if ($('#au')) $('#au').onclick = () => send('auto', { on: !S.autoplay, speed: 1600 });
+  $('#dk').innerHTML = `<p class="center muted" style="margin:0">เจ้ามือกำลังเปิดไพ่ · ตะโกนได้ตามสบาย</p>`;
 }
 
 /* ---------------- จ่ายเงิน ---------------- */
@@ -408,11 +388,8 @@ function renderPayout() {
     </div>
 
     <div class="dock"><div class="dock-inner">
-      ${S.isHost
-        ? `<button class="btn" id="nx">${g.raceNo >= g.totalRaces ? 'ดูผลรวมทั้งเกม' : `ไปเรซที่ ${g.raceNo + 1}`}</button>`
-        : '<p class="center muted" style="margin:0">รอเจ้ามือไปต่อ</p>'}
+      <p class="center muted" style="margin:0">รอเจ้ามือไปต่อ</p>
     </div></div>`;
-  if ($('#nx')) $('#nx').onclick = () => send('next');
 }
 
 /* ---------------- ผลรวม ---------------- */
@@ -435,15 +412,8 @@ function renderResults() {
         </div>`).join('')}
     </div>
     <div class="dock"><div class="dock-inner">
-      ${S.isHost
-        ? `<div class="row">
-             <button class="btn" id="rm">เล่นอีกรอบ</button>
-             <button class="btn ghost" id="end" style="flex:0 0 34%">จบเกม</button>
-           </div>`
-        : '<p class="center muted" style="margin:0">รอเจ้ามือเริ่มรอบใหม่</p>'}
+      <p class="center muted" style="margin:0">รอเจ้ามือเริ่มรอบใหม่</p>
     </div></div>`;
-  if ($('#rm')) $('#rm').onclick = () => send('rematch');
-  if ($('#end')) $('#end').onclick = () => send('end');
 }
 
 renderHome();

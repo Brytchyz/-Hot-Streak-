@@ -1,5 +1,5 @@
 /* ============================================================
-   Hot Streak — จอบอร์ด (ดูอย่างเดียว ไม่มี identity ของตัวเอง)
+   Hot Streak — จอเจ้ามือ (คุมเกม แต่ไม่ใช่ผู้เล่น เหมือน Kahoot)
    ============================================================ */
 const socket = io();
 const $ = (s) => document.querySelector(s);
@@ -9,24 +9,39 @@ let S = null;
 let trackKey = null;
 
 const roomCode = (new URLSearchParams(location.search).get('r') || '').toUpperCase().slice(0, 4);
-const watch = (code) => socket.emit('watch', { code: (code || '').toUpperCase().trim() });
+const send = (ev, data) => socket.emit(ev, data || {});
+const hostRoom = (code) => send('host', { code: (code || '').toUpperCase().trim() || null, origin: location.origin });
 
-function codeForm(msg) {
+function homeForm(msg) {
   app.innerHTML = `
-    <p class="eyebrow center">Hot Streak — จอบอร์ด</p>
-    <h1 class="center">${msg || 'ใส่รหัสห้อง'}</h1>
-    <div class="stack" style="max-width:300px;margin:20px auto 0">
-      <input id="cd" class="code" placeholder="รหัส" maxlength="4" autocomplete="off">
-      <button class="btn" id="wt">เปิดจอบอร์ด</button>
+    <p class="eyebrow center">Hot Streak — จอเจ้ามือ</p>
+    <h1 class="center">${msg || 'พร้อมเปิดโต๊ะแล้ว'}</h1>
+    <div class="stack" style="max-width:320px;margin:20px auto 0">
+      <button class="btn" id="mk">สร้างห้องใหม่</button>
+      <p class="eyebrow center" style="margin:16px 0 4px">หรือกลับไปคุมห้องเดิม</p>
+      <input id="cd" class="code" placeholder="รหัสห้อง" maxlength="4" autocomplete="off">
+      <button class="btn ghost" id="rc">เข้าคุมห้องนี้</button>
     </div>`;
+  $('#mk').onclick = () => hostRoom(null);
   $('#cd').oninput = (e) => { e.target.value = e.target.value.toUpperCase(); };
-  $('#wt').onclick = () => watch($('#cd').value);
+  $('#rc').onclick = () => hostRoom($('#cd').value);
 }
 
-socket.on('err', (msg) => codeForm(msg));
+socket.on('err', (msg) => homeForm(msg));
+socket.on('joined', ({ code }) => {
+  localStorage.setItem('hs_board_room', code);
+  if (location.search) history.replaceState(null, '', location.pathname);
+});
 socket.on('state', (s) => { S = s; render(); });
-socket.on('ended', () => { S = null; codeForm('เกมจบแล้ว — ใส่รหัสห้องใหม่ถ้าจะดูต่อ'); });
-socket.on('connect', () => { if (roomCode) watch(roomCode); else codeForm(); });
+socket.on('ended', () => {
+  localStorage.removeItem('hs_board_room');
+  S = null;
+  homeForm('เกมจบแล้ว');
+});
+socket.on('connect', () => {
+  const code = roomCode || localStorage.getItem('hs_board_room');
+  if (code) hostRoom(code); else homeForm();
+});
 
 /* ============================================================
    RENDER
@@ -55,16 +70,25 @@ function renderLobby() {
       : ''}
     <h1 class="center" style="font-size:56px;letter-spacing:.25em;margin-top:18px">${L.code}</h1>
     <p class="sub center">${L.players.length}/8 คน</p>
-    <div class="plist" style="max-width:460px;margin:0 auto">
+    <div class="plist" style="max-width:460px;margin:0 auto 18px">
       ${L.players.map((p) => `
         <div class="prow ${p.connected ? '' : 'off'}">
           <div class="prow-top">
             <span class="pn">${esc(p.name)}</span>
-            ${p.id === L.hostId ? '<span class="tag ok">เจ้ามือ</span>' : ''}
             ${p.connected ? '' : '<span class="tag">หลุด</span>'}
+            <button class="tag" data-kick="${p.id}">เอาออก</button>
           </div>
         </div>`).join('')}
+    </div>
+    <div class="stack" style="max-width:320px;margin:0 auto">
+      <button class="btn" id="go" ${L.players.length < 2 ? 'disabled' : ''}>
+        ${L.players.length < 2 ? 'รออีกอย่างน้อย 1 คน' : `เริ่มเกม (${L.players.length} คน)`}
+      </button>
     </div>`;
+  $('#go').onclick = () => send('start');
+  app.querySelectorAll('[data-kick]').forEach((b) => {
+    b.onclick = () => send('kick', { playerId: b.dataset.kick });
+  });
 }
 
 function renderBetting() {
@@ -132,7 +156,8 @@ function renderRacing() {
       <div id="trk">${buildTrack(g)}</div>
       <div class="deckline"><span id="dl"></span><span id="df"></span></div>
       <div id="fc"></div>
-      <div class="feed" id="fd"></div>`;
+      <div class="feed" id="fd"></div>
+      <div class="stack" id="ctl" style="max-width:420px;margin:16px auto 0"></div>`;
   }
   $('#pod').innerHTML = podiumEl(g);
   updateTrack(g);
@@ -146,6 +171,13 @@ function renderRacing() {
     : `<div class="flipcard empty">3… 2… 1… เผาไพ่ 3 ใบแล้ว พร้อมออกตัว</div>`;
   $('#fd').innerHTML = (g.feed || []).map(feedLine).filter(Boolean)
     .map((l) => `<div class="${l.cls}">${l.txt}</div>`).join('');
+  $('#ctl').innerHTML = `
+    <div class="row">
+      <button class="btn" id="fl" ${S.autoplay ? 'disabled' : ''}>เปิดไพ่ใบต่อไป</button>
+      <button class="btn ghost" id="au" style="flex:0 0 42%">${S.autoplay ? 'หยุดอัตโนมัติ' : 'เล่นอัตโนมัติ'}</button>
+    </div>`;
+  $('#fl').onclick = () => send('flip');
+  $('#au').onclick = () => send('auto', { on: !S.autoplay, speed: 1600 });
 }
 
 function renderPayout() {
@@ -187,7 +219,7 @@ function renderPayout() {
     </div>
 
     <h2 style="margin-top:22px">ยอดเงินรวม</h2>
-    <div class="plist">
+    <div class="plist" style="margin-bottom:22px">
       ${[...g.players].sort((a, b) => b.money - a.money).map((p, i) => `
         <div class="prow">
           <div class="prow-top">
@@ -196,7 +228,11 @@ function renderPayout() {
             <span class="pm">$${p.money}</span>
           </div>
         </div>`).join('')}
+    </div>
+    <div class="stack" style="max-width:320px;margin:0 auto">
+      <button class="btn" id="nx">${g.raceNo >= g.totalRaces ? 'ดูผลรวมทั้งเกม' : `ไปเรซที่ ${g.raceNo + 1}`}</button>
     </div>`;
+  $('#nx').onclick = () => send('next');
 }
 
 function renderResults() {
@@ -206,7 +242,7 @@ function renderResults() {
   app.innerHTML = `
     <p class="eyebrow">จบ 3 เรซ</p>
     <h1>ผลสุดท้าย</h1>
-    <div class="plist">
+    <div class="plist" style="margin-bottom:22px">
       ${ranked.map((p, i) => `
         <div class="prow">
           <div class="prow-top">
@@ -215,7 +251,13 @@ function renderResults() {
             <span class="pm" style="font-size:22px">$${p.money}</span>
           </div>
         </div>`).join('')}
+    </div>
+    <div class="row" style="max-width:420px;margin:0 auto">
+      <button class="btn" id="rm">เล่นอีกรอบ</button>
+      <button class="btn ghost" id="end" style="flex:0 0 34%">จบเกม</button>
     </div>`;
+  $('#rm').onclick = () => send('rematch');
+  $('#end').onclick = () => send('end');
 }
 
-if (!roomCode) codeForm();
+if (!roomCode) homeForm();
