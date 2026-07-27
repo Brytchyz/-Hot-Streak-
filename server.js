@@ -269,21 +269,24 @@ server.on('error', (e) => {
 server.listen(PORT, '0.0.0.0', () => {
   if (process.env.HS_QUIET) return;   // tunnel.js จะพิมพ์ลิงก์เอง
   const ips = localIPs();
-  const lan = process.env.PUBLIC_URL || (ips[0] ? `http://${ips[0]}:${PORT}` : `http://localhost:${PORT}`);
+  // Render ตั้ง RENDER_EXTERNAL_URL ให้เองอัตโนมัติ ไม่ต้องตั้งอะไรเพิ่ม
+  const publicUrl = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL;
+  const lan = publicUrl || (ips[0] ? `http://${ips[0]}:${PORT}` : `http://localhost:${PORT}`);
 
   console.log('\n  \u{1F3C1}  Hot Streak \u2014 เซิร์ฟเวอร์พร้อมแล้ว\n');
   console.log(`     เปิดบนเครื่องนี้   http://localhost:${PORT}`);
-  if (!process.env.PUBLIC_URL) {
+  if (!publicUrl) {
     for (const ip of ips) console.log(`     มือถือในวง Wi-Fi   http://${ip}:${PORT}`);
   } else {
-    console.log(`     ลิงก์สาธารณะ       ${process.env.PUBLIC_URL}`);
+    console.log(`     ลิงก์สาธารณะ       ${publicUrl}`);
   }
+  console.log(`     หน้าเจ้ามือ (บอร์ด)  ${lan}/board.html`);
 
   console.log('\n     ให้เพื่อนสแกน QR นี้ได้เลย:\n');
   qrTerminal.generate(lan, { small: true }, (qr) => {
     console.log(qr.split('\n').map((l) => '     ' + l).join('\n'));
     console.log(`     ${lan}\n`);
-    console.log('     เมื่อสร้างห้องแล้ว หน้าล็อบบี้จะมี QR อีกอันที่พาเข้าห้องตรง ๆ');
+    console.log('     เจ้ามือเปิดหน้าบอร์ดแล้วกด "สร้างห้องใหม่" จะได้ QR ห้องอีกอันให้ผู้เล่นสแกน');
     console.log('     กด Ctrl+C เพื่อปิดเซิร์ฟเวอร์\n');
   });
 });
