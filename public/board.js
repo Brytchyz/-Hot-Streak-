@@ -131,6 +131,9 @@ function renderBetting() {
     <div class="betting-grid">
       <div class="betting-table">
         ${seatTable(g.players, d.currentPlayerId, centerDeck)}
+      </div>
+      <div class="betting-track-col">
+        <p class="eyebrow" style="margin:0 0 6px">สนามแข่ง</p>
         <div id="trk" class="betting-track">${buildTrack(g)}</div>
       </div>
       <div class="betting-col">
