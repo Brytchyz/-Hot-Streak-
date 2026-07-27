@@ -205,6 +205,7 @@ io.on('connection', (socket) => {
   socket.on('double', guard(({ ticketId }) => room.game.setDouble(me.id, ticketId)));
 
   socket.on('flip', hostGuard(() => room.game.flip()));
+  socket.on('revealPayout', hostGuard(() => room.game.revealPayout()));
 
   socket.on('auto', hostGuard(({ on, speed }) => {
     if (on) room.startAuto(speed || 1800); else room.stopAuto();

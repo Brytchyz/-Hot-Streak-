@@ -5,14 +5,20 @@ body{ padding-bottom:0; }
 #app.board{
   max-width:920px; margin:0 auto; padding:32px 28px 60px;
 }
+#app.board.wide{ max-width:1500px; padding:18px 28px 20px; }
+#app.board.wide h1{ font-size:26px; margin-bottom:6px; }
+#app.board.wide .eyebrow{ margin-bottom:2px; }
+#app.board.wide .table-oval{ aspect-ratio:16/9.5; }
 #app.board h1{ font-size:34px; }
 #app.board .deckgrid{ grid-template-columns:repeat(4,1fr); }
 
-/* ---------- เดิมพัน: มาสคอตซ้าย · พิเศษขวา ---------- */
-#app.board .betcols{
-  display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:26px;
+/* ---------- หน้าวางเดิมพัน: โต๊ะ+สนามซ้าย · มาสคอตกลาง · พิเศษขวา (ยัดในจอเดียว ไม่เลื่อน) ---------- */
+#app.board .betting-grid{
+  display:grid;grid-template-columns:1.15fr 0.85fr 0.85fr;gap:22px;
+  align-items:start;margin-top:6px;
 }
-#app.board .betcols h2{margin-top:0}
+#app.board .betting-col h2{margin-top:0;font-size:16px}
+#app.board .betting-col .stackcol{gap:6px}
 
 /* ---------- โต๊ะโป๊กเกอร์ ---------- */
 .table-oval{
@@ -57,3 +63,13 @@ body{ padding-bottom:0; }
 #app.board .chip .dot{width:30px;height:30px;font-size:13px}
 #app.board .finishband{height:20px;margin-top:-10px}
 #app.board .lanetags span{padding:8px 4px;font-size:12px}
+
+/* หน้าวางเดิมพัน — สนามย่อส่วนลง ทุกอย่างจะได้ยัดพอดีจอเดียว */
+#app.board .betting-track{margin-top:14px}
+#app.board .betting-track .trackwrap{margin-bottom:0}
+#app.board .betting-track .cell{height:15px;font-size:8px}
+#app.board .betting-track .cell.star{font-size:10px}
+#app.board .betting-track .chip{height:15px}
+#app.board .betting-track .chip .dot{width:11px;height:11px;font-size:0}
+#app.board .betting-track .finishband{height:7px;margin-top:-3.5px}
+#app.board .betting-track .lanetags span{padding:3px 2px;font-size:9px}

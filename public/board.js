@@ -27,7 +27,17 @@ function homeForm(msg) {
   $('#rc').onclick = () => hostRoom($('#cd').value);
 }
 
-socket.on('err', (msg) => homeForm(msg));
+function toast(msg) {
+  const t = $('#toast');
+  if (!t) return;
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.hidden = true; }, 2600);
+}
+
+// ถ้ายังไม่เข้าห้อง (host/join ล้มเหลว) ค่อยเด้งกลับหน้าแรก — ถ้าเข้าห้องอยู่แล้ว
+// error เล็ก ๆ (เช่น กดซ้ำ/action มาช้า) ไม่ควรล้างจอทั้งหน้าทิ้ง แค่เด้ง toast พอ
+socket.on('err', (msg) => { if (S) toast(msg); else homeForm(msg); });
 socket.on('joined', ({ code }) => {
   localStorage.setItem('hs_board_room', code);
   if (location.search) history.replaceState(null, '', location.pathname);
@@ -49,11 +59,13 @@ socket.on('connect', () => {
 function render() {
   if (!S) return;
   const g = S.game;
+  app.classList.toggle('wide', g && g.phase === 'betting');
   if (!g) return renderLobby();
   ({
     betting: renderBetting,
     submit: renderSubmit,
     racing: renderRacing,
+    finished: renderFinished,
     payout: renderPayout,
     results: renderResults,
   }[g.phase] || renderLobby)();
@@ -115,17 +127,17 @@ function renderBetting() {
 
   app.innerHTML = `
     <p class="eyebrow center">ตาของ</p>
-    <h1 class="center" style="margin-bottom:14px">${esc(turnName)}</h1>
-    ${seatTable(g.players, d.currentPlayerId, centerDeck)}
-
-    <div id="trk" style="margin-top:22px">${buildTrack(g)}</div>
-
-    <div class="betcols">
-      <div class="betcol">
+    <h1 class="center" style="margin-bottom:10px">${esc(turnName)}</h1>
+    <div class="betting-grid">
+      <div class="betting-table">
+        ${seatTable(g.players, d.currentPlayerId, centerDeck)}
+        <div id="trk" class="betting-track">${buildTrack(g)}</div>
+      </div>
+      <div class="betting-col">
         <h2>เดิมพันตัวมาสคอต</h2>
         <div class="stackcol">${mascotStacks}</div>
       </div>
-      <div class="betcol">
+      <div class="betting-col">
         <div class="sidebet divider" style="margin-top:0">
           <p class="eyebrow" style="margin:0 0 4px">คำถามเดิมพันพิเศษของเรซนี้</p>
           <div class="q">${esc(g.sideBet.th)}</div>
@@ -198,6 +210,19 @@ function renderRacing() {
     </div>`;
   $('#fl').onclick = () => send('flip');
   $('#au').onclick = () => send('auto', { on: !S.autoplay, speed: 1600 });
+}
+
+function renderFinished() {
+  const g = S.game;
+  trackKey = null;
+  app.innerHTML = `
+    <p class="eyebrow center">จบเรซ ${g.raceNo}</p>
+    <h1 class="center">ผลการแข่งขัน</h1>
+    ${podiumEl(g)}
+    <div class="stack" style="max-width:320px;margin:22px auto 0">
+      <button class="btn" id="rv">นับเงิน</button>
+    </div>`;
+  $('#rv').onclick = () => send('revealPayout');
 }
 
 function renderPayout() {

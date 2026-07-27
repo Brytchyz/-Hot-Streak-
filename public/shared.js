@@ -190,10 +190,12 @@ function updateTrack(g) {
 
 function podiumEl(g) {
   return `<div class="podium">${[0, 1, 2, 3].map((i) => {
-    const id = g.podium?.[i];
+    const ids = g.podium?.[i];
+    const who = !ids ? '—' : ids.map((id) => M[id].th).join(' / ');
+    const color = !ids ? 'var(--chalk-dim)' : ids.length > 1 ? 'var(--chalk)' : M[ids[0]].hex;
     return `<div class="pod ${i === 0 ? 'p1' : ''}">
-      <div class="pl">ที่ ${i + 1}</div>
-      <div class="who" style="color:${id ? M[id].hex : 'var(--chalk-dim)'}">${id ? M[id].th : '—'}</div>
+      <div class="pl">ที่ ${i + 1}${ids?.length > 1 ? ' (เสมอ)' : ''}</div>
+      <div class="who" style="color:${color}">${who}</div>
     </div>`;
   }).join('')}</div>`;
 }

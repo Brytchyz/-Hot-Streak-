@@ -239,9 +239,8 @@ class Game {
       this.foldStep += 1;
     }
     this.log({ t: 'fold', backEdge: this.backEdge });
-    for (const m of this.racing) {
-      if (m.pos < this.backEdge) this.dq(m, 'folded');
-    }
+    const foldedNow = this.racing.filter((m) => m.pos < this.backEdge);
+    if (foldedNow.length) this.dqBatch(foldedNow, 'folded');
     this.checkRaceEnd();
     if (this.phase !== 'racing') return;
     this.deck = shuffle(this.fullDeck, this.rng);
@@ -369,22 +368,25 @@ class Game {
   }
 
   // ---- ตรวจการชน (ตัวที่หยุดนิ่งเป็นฝ่ายล้ม) ----
+  // ถ้าไปชนตัวที่ล้มอยู่แล้วพร้อมกันหลายตัว ถือว่าโดนน็อกพร้อมกัน (DQ ที่พร้อมกัน)
   collide(m) {
     const others = this.mascots.filter(
       (o) => o !== m && o.status === 'racing' && o.lane === m.lane && o.pos === m.pos
     );
-    for (const o of others) {
-      this.summary.collisions += 1;
-      this.log({ t: 'collide', by: m.id, id: o.id });
-      this.fall(o);
-    }
+    if (!others.length) return;
+    this.summary.collisions += others.length;
+    for (const o of others) this.log({ t: 'collide', by: m.id, id: o.id });
+    const alreadyFallen = others.filter((o) => o.fallen);
+    const notFallenYet = others.filter((o) => !o.fallen);
+    for (const o of notFallenYet) this.fall(o);
+    if (alreadyFallen.length) this.dqBatch(alreadyFallen, 'knockout');
   }
 
   // ---- เข้าเส้นชัย ----
   finish(m) {
     m.status = 'finished';
     const place = this.podium.findIndex((x) => x === null); // ที่ว่างสูงสุด
-    this.podium[place] = m.id;
+    this.podium[place] = [m.id];
     m.place = place + 1;
     if (m.place === 1) {
       this.summary.winner = m.id;
@@ -395,23 +397,37 @@ class Game {
     this.log({ t: 'finish', id: m.id, place: m.place });
   }
 
-  // ---- ปรับแพ้ ----
-  dq(m, reason) {
-    if (m.status !== 'racing') return;
-    m.status = 'dq';
-    this.summary.dqCount += 1;
-    if (reason === 'knockout') this.summary.knockouts += 1;
-    if (reason === 'offSide') this.summary.offSide += 1;
-    if (reason === 'offBack') this.summary.offBack += 1;
-    if (reason === 'folded') this.summary.folded += 1;
+  // ---- ปรับแพ้ (ตัวเดียว) ----
+  dq(m, reason) { this.dqBatch([m], reason); }
+
+  // ---- ปรับแพ้พร้อมกันหลายตัว ----
+  // ถ้า DQ พร้อมกันหลายตัว (พับสนามทับพร้อมกัน หรือชนกันเป็นพวง) ทุกตัวในกลุ่มนี้
+  // ได้อันดับเดียวกัน — อันดับที่แย่ที่สุดในบรรดาช่องที่ควรจะได้ ไม่มีใครได้ช่องที่ดีกว่า
+  // (เช่น 2 ตัว DQ พร้อมกันตอนช่องที่ 3-4 ว่างอยู่ ทั้งคู่ได้ที่ 4 เหมือนกัน ไม่มีใครได้ที่ 3)
+  dqBatch(mascots, reason) {
+    const active = mascots.filter((m) => m.status === 'racing');
+    if (!active.length) return;
+    for (const m of active) { m.status = 'dq'; this.summary.dqCount += 1; }
+    if (reason === 'knockout') this.summary.knockouts += active.length;
+    if (reason === 'offSide') this.summary.offSide += active.length;
+    if (reason === 'offBack') this.summary.offBack += active.length;
+    if (reason === 'folded') this.summary.folded += active.length;
     // การ์ด side bet นับ "ออกนอกสนาม" = หลุดท้าย + ตกขอบ + ตกค้างใต้เสื่อ
-    if (['offSide', 'offBack', 'folded'].includes(reason)) this.summary.outOfBounds += 1;
-    // ลงอันดับต่ำสุดที่ยังว่าง
-    let place = 3;
-    while (place >= 0 && this.podium[place] !== null) place -= 1;
-    this.podium[place] = m.id;
-    m.place = place + 1;
-    this.log({ t: 'dq', id: m.id, reason, place: m.place });
+    if (['offSide', 'offBack', 'folded'].includes(reason)) this.summary.outOfBounds += active.length;
+
+    // หาช่องอันดับที่ว่างเท่าจำนวนตัวที่โดนพร้อมกัน (นับจากท้ายสุดขึ้นมา)
+    const slots = [];
+    let p = 3;
+    while (slots.length < active.length && p >= 0) {
+      if (this.podium[p] === null) slots.push(p);
+      p -= 1;
+    }
+    const worst = Math.max(...slots); // ช่องแย่ที่สุดในกลุ่มนี้ — ทุกตัวได้อันดับนี้ร่วมกัน
+    this.podium[worst] = active.map((m) => m.id);
+    for (const m of active) {
+      m.place = worst + 1;
+      this.log({ t: 'dq', id: m.id, reason, place: m.place, tied: active.length > 1 });
+    }
   }
 
   // ---- จบการแข่ง ----
@@ -421,12 +437,18 @@ class Game {
     const left = this.racing[0];
     if (left) {
       const place = this.podium.findIndex((x) => x === null);
-      this.podium[place] = left.id;
+      this.podium[place] = [left.id];
       left.place = place + 1;
       left.status = 'finished';
       this.log({ t: 'placed', id: left.id, place: left.place });
     }
     for (const m of this.mascots) this.summary.places[m.id] = m.place;
+    this.phase = 'finished'; // หยุดโชว์ผลที่ 1-2-3-4 ก่อน ยังไม่นับเงิน
+  }
+
+  // เจ้ามือกดไปต่อ หลังทุกคนเห็นผล 1-2-3-4 ชัดเจนแล้ว ค่อยนับเงิน
+  revealPayout() {
+    if (this.phase !== 'finished') throw new Error('ยังไม่จบเรซ');
     this.phase = 'payout';
     this.computePayouts();
   }
@@ -476,11 +498,10 @@ class Game {
     if (this.phase !== 'payout') throw new Error('ยังจ่ายเงินไม่เสร็จ');
     if (this.raceNo >= D.TOTAL_RACES) { this.phase = 'results'; return; }
 
-    // ไพ่ทั้งหมดกลับเข้าสำรับ แล้วแจกคนละ 1 ใบจากสำรับ (ตามกติกา)
+    // ไพ่ทั้งหมดกลับเข้าสำรับ แล้วแจกคนละ 1 ใบจากสำรับ ให้มือกลับมาเป็น 3 ใบเสมอ
     this.raceDeck = shuffle(this.fullDeck, this.rng);
-    const draw = this.n === 2 ? 2 : 1;
     for (const p of this.players) {
-      p.hand.push(...this.raceDeck.splice(0, draw));
+      p.hand.push(...this.raceDeck.splice(0, D.CARDS_TO_SUBMIT));
     }
     this.sideBetIndex += 1;
     this.firstDrafter = (this.firstDrafter + 1) % this.n;

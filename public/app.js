@@ -64,6 +64,7 @@ function render() {
     betting: renderBetting,
     submit: renderSubmit,
     racing: renderRacing,
+    finished: renderFinished,
     payout: renderPayout,
     results: renderResults,
   }[g.phase] || renderLobby)();
@@ -328,6 +329,19 @@ function renderRacing() {
   $('#fd').innerHTML = (g.feed || []).map(feedLine).filter(Boolean)
     .map((l) => `<div class="${l.cls}">${l.txt}</div>`).join('');
   $('#dk').innerHTML = `<p class="center muted" style="margin:0">เจ้ามือกำลังเปิดไพ่ · ตะโกนได้ตามสบาย</p>`;
+}
+
+/* ---------------- ผลเรซ (ก่อนนับเงิน) ---------------- */
+function renderFinished() {
+  const g = S.game;
+  trackKey = null;
+  app.innerHTML = `
+    <p class="eyebrow">จบเรซ ${g.raceNo}</p>
+    <h1>ผลการแข่งขัน</h1>
+    ${podiumEl(g)}
+    <div class="dock"><div class="dock-inner">
+      <p class="center muted" style="margin:0">รอเจ้ามือนับเงิน</p>
+    </div></div>`;
 }
 
 /* ---------------- จ่ายเงิน ---------------- */
