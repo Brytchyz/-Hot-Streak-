@@ -246,6 +246,12 @@ function renderSubmit() {
     <h1>แอบใส่ไพ่ ${need} ใบ</h1>
     <p class="sub">โอกาสเดียวที่คุณจะแทรกแซงการแข่ง ห้ามให้ใครเห็น — แต่จะโม้ จะหลอก จะจับมือกันก็ตามสบาย</p>
 
+    ${(S.you.tickets || []).length && !needDouble ? `
+      <div class="panel tight" style="margin-bottom:16px">
+        <p class="eyebrow" style="margin:0 0 6px">ตั๋วที่คุณแทงไปแล้ว</p>
+        <div class="tbadges">${S.you.tickets.map(ticketBadge).join('')}</div>
+      </div>` : ''}
+
     ${needDouble ? `
       <div class="sidebet" style="border-color:var(--amber)">
         <p class="eyebrow" style="margin:0 0 6px">เรซสุดท้าย</p>
