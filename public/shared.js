@@ -19,7 +19,7 @@ function cardLabel(c) {
     if (c.recover) bits.push('ลุกขึ้นหมด');
     if (c.amount > 0) bits.push(`เดิน ${c.amount}`);
     if (c.amount < 0) bits.push(`ถอย ${-c.amount}`);
-    return { who: 'ทุกตัว', act: bits.join(' + '), hex: '#3E7A4E', multi: true };
+    return { who: 'ทุกตัว', act: bits.join(' + '), hex: '#3E7A4E', multi: true, icon: null };
   }
   const m = M[c.target];
   let act = '';
@@ -31,7 +31,7 @@ function cardLabel(c) {
     case 'swerve':  act = `เดิน ${c.amount} แล้วปัด${c.dir === 'R' ? 'ขวา' : 'ซ้าย'}`; break;
     case 'recover': act = `ลุกขึ้น แล้วเดิน ${c.amount}`; break;
   }
-  return { who: m ? m.th : c.target, act, hex: m ? m.hex : '#999' };
+  return { who: m ? m.th : c.target, act, hex: m ? m.hex : '#999', icon: m ? m.icon : null };
 }
 
 function shortLabel(c) {
@@ -97,11 +97,12 @@ function ticketEl(t, { mode = null, pickable = false, badge = null } = {}) {
     </div>`;
 }
 
-function ticketBadge(t) {
+function ticketBadge(t, { showSize = true } = {}) {
   const isMascot = t.kind === 'mascot';
   const name = isMascot ? M[t.mascot].th : (t.answer === 'YES' ? 'ใช่' : 'ไม่ใช่');
   const hex = isMascot ? M[t.mascot].hex : (t.answer === 'YES' ? '#3E7A4E' : '#8A5A2B');
-  return `<span class="tbadge ${t.mode === 'risky' ? 'risky' : ''}" style="--c:${hex}">${name} · ${SIZE_TH[t.size]}${t.mode === 'risky' ? ' · เสี่ยง' : ''}</span>`;
+  const sizePart = showSize ? ` · ${SIZE_TH[t.size]}` : '';
+  return `<span class="tbadge ${t.mode === 'risky' ? 'risky' : ''}" style="--c:${hex}">${name}${sizePart}${t.mode === 'risky' ? ' · เสี่ยง' : ''}</span>`;
 }
 
 /* ---------------- โต๊ะโป๊กเกอร์ (จอบอร์ด) ---------------- */
@@ -125,14 +126,14 @@ function deckGrid(deck) {
   if (!deck) return '';
   const by = { gobbler: [], hurley: [], dangle: [], mum: [], all: [] };
   deck.forEach((c) => (by[c.target] || by.all).push(c));
-  const col = (k, title, hex) => `
+  const col = (k, title, hex, icon) => `
     <div class="deckcol">
-      <h3 style="color:${hex}">${title} <span style="color:var(--chalk-dim);font-weight:500">${by[k].length}</span></h3>
+      <h3 style="color:${hex}">${icon ? `<img class="deck-icon" src="${icon}" alt="">` : ''}${title} <span style="color:var(--chalk-dim);font-weight:500">${by[k].length}</span></h3>
       <ul>${by[k].map((c) => `<li class="${isBad(c) ? 'bad' : ''}">${shortLabel(c)}</li>`).join('')}</ul>
     </div>`;
   return `<div class="deckgrid">
-    ${ORDER.map((k) => col(k, M[k].th, M[k].hex)).join('')}
-    ${by.all.length ? `<div style="grid-column:1/-1">${col('all', 'ไพ่เขียว (ทุกตัว)', '#6FBF7F')}</div>` : ''}
+    ${ORDER.map((k) => col(k, M[k].th, M[k].hex, M[k].icon)).join('')}
+    ${by.all.length ? `<div style="grid-column:1/-1">${col('all', 'ไพ่เขียว (ทุกตัว)', '#6FBF7F', null)}</div>` : ''}
   </div>`;
 }
 

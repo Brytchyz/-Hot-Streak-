@@ -226,6 +226,7 @@ input.code{
 .deckgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .deckcol{background:rgba(240,237,225,.05);border-radius:8px;padding:9px}
 .deckcol h3{font-family:var(--disp);font-size:12px;font-weight:700;margin:0 0 6px;letter-spacing:.06em}
+.deck-icon{width:14px;height:14px;object-fit:contain;vertical-align:-2px;margin-right:4px}
 .deckcol ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px}
 .deckcol li{
   font-size:11px;font-family:var(--disp);font-weight:600;
@@ -241,6 +242,7 @@ input.code{
   border-left:6px solid var(--chalk-dim);transition:transform .12s;
 }
 .handcard:active{transform:scale(.985)}
+.handcard .hc-icon{width:30px;height:30px;object-fit:contain;flex:0 0 auto}
 .handcard.sel{box-shadow:0 0 0 2px var(--amber);background:#FBF4DE}
 .handcard .hc-act{font-family:var(--disp);font-weight:700;font-size:16px;flex:1}
 .handcard .hc-who{font-size:11px;color:#6B665A;letter-spacing:.06em}

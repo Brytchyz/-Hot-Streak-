@@ -227,6 +227,7 @@ function handPeek(hand) {
     ${hand.map((c) => {
       const L = cardLabel(c);
       return `<div class="handcard" style="border-left-color:${L.hex}">
+        ${L.icon ? `<img class="hc-icon" src="${L.icon}" alt="">` : ''}
         <span class="hc-act">${L.act}</span>
         <span class="hc-who">${L.who}</span>
       </div>`;
@@ -266,6 +267,7 @@ function renderSubmit() {
         ${S.you.hand.map((c) => {
           const L = cardLabel(c);
           return `<button class="handcard ${sel.has(c.uid) ? 'sel' : ''}" data-uid="${c.uid}" style="border-left-color:${L.hex}">
+            ${L.icon ? `<img class="hc-icon" src="${L.icon}" alt="">` : ''}
             <span class="hc-act">${L.act}</span>
             <span class="hc-who">${L.who}</span>
           </button>`;

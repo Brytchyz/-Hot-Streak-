@@ -140,10 +140,15 @@ function renderSubmit() {
   const g = S.game;
   trackKey = null;
   const doneCount = g.players.filter((p) => p.submitted).length;
+  const startMascots = ORDER.map((id, lane) => ({ id, lane, pos: g.track.start, facing: 1, fallen: false, status: 'racing' }));
+
   app.innerHTML = `
     <p class="eyebrow">ก่อนออกสตาร์ท</p>
     <h1>ทุกคนกำลังแอบใส่ไพ่คนละ ${g.cardsToSubmit} ใบ</h1>
     <p class="sub">ส่งแล้ว ${doneCount}/${g.players.length} คน</p>
+
+    <div id="trk" style="margin-bottom:22px">${buildTrack(g)}</div>
+
     <div class="plist" style="margin-bottom:22px">
       ${g.players.map((p) => `
         <div class="prow ${p.submitted ? '' : 'off'}">
@@ -151,10 +156,12 @@ function renderSubmit() {
             <span class="pn">${esc(p.name)}</span>
             <span class="tag ${p.submitted ? 'ok' : ''}">${p.submitted ? 'ส่งแล้ว' : 'กำลังคิด…'}</span>
           </div>
+          ${p.tickets.length ? `<div class="tbadges">${p.tickets.map((t) => ticketBadge(t, { showSize: false })).join('')}</div>` : ''}
         </div>`).join('')}
     </div>
     <h2>สำรับที่ทุกคนเห็น</h2>
     ${deckGrid(g.raceDeck)}`;
+  updateTrack({ track: g.track, mascots: startMascots });
 }
 
 function renderRacing() {
