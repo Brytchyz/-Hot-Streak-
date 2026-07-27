@@ -37,17 +37,17 @@ body{ padding-bottom:0; }
 .seat-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:7px}
 .seat-badges.muted{color:var(--chalk-dim);font-size:11px;margin-top:6px}
 
-/* สำรับกลางโต๊ะ */
+/* สำรับกลางโต๊ะ — เรียง 1 แถวตามลำดับเลนที่มาสคอตยืน (ซ้าย→ขวา ตรงกับสนามด้านล่าง) */
 .table-center{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:78%;max-width:640px;max-height:84%;overflow-y:auto;
+  width:86%;max-width:760px;max-height:84%;overflow-y:auto;
   background:rgba(6,18,12,.68);border:1px solid rgba(240,237,225,.18);
-  border-radius:14px;padding:16px 20px;backdrop-filter:blur(3px);
+  border-radius:14px;padding:16px 18px;backdrop-filter:blur(3px);
 }
-#app.board .table-center .deckgrid{grid-template-columns:repeat(2,1fr);gap:12px}
-.table-center .deckcol{padding:10px 12px}
-.table-center .deckcol h3{font-size:15px;margin:0 0 8px}
-.table-center .deckcol li{font-size:13px;padding:3px 8px;border-radius:5px}
+#app.board .table-center .deckgrid{grid-template-columns:repeat(4,1fr);gap:10px}
+.table-center .deckcol{padding:9px 10px}
+.table-center .deckcol h3{font-size:13px;margin:0 0 7px}
+.table-center .deckcol li{font-size:12px;padding:2px 7px;border-radius:5px}
 
 /* ---------- สนามแข่ง — ยืดให้ไม่แออัดบนจอใหญ่ ---------- */
 #app.board .trackwrap{margin-bottom:22px;border-radius:14px}
