@@ -30,7 +30,7 @@ body{ padding-bottom:0; }
 }
 .seat{
   position:absolute;top:0;left:0;transform:translate(-50%,-50%);
-  width:168px;padding:10px 12px;text-align:center;
+  width:24%;min-width:92px;max-width:190px;padding:8% 6%;text-align:center;
   background:rgba(240,237,225,.07);border:1px solid rgba(240,237,225,.14);
   border-radius:var(--r);backdrop-filter:blur(2px);
 }
@@ -64,12 +64,18 @@ body{ padding-bottom:0; }
 #app.board .finishband{height:20px;margin-top:-10px}
 #app.board .lanetags span{padding:8px 4px;font-size:12px}
 
-/* หน้าวางเดิมพัน — สนามย่อส่วนลง ทุกอย่างจะได้ยัดพอดีจอเดียว */
-#app.board .betting-track{margin-top:14px}
-#app.board .betting-track .trackwrap{margin-bottom:0}
-#app.board .betting-track .cell{height:15px;font-size:8px}
-#app.board .betting-track .cell.star{font-size:10px}
-#app.board .betting-track .chip{height:15px}
-#app.board .betting-track .chip .dot{width:11px;height:11px;font-size:0}
-#app.board .betting-track .finishband{height:7px;margin-top:-3.5px}
-#app.board .betting-track .lanetags span{padding:3px 2px;font-size:9px}
+/* หน้าวางเดิมพัน — สนามย่อส่วนลง โดยยึดตามสัดส่วนจอ (vh/%) ไม่ใช่ล็อกจำนวน pixel ตายตัว
+   ทำให้ยืดหดตามขนาดจอจริง แทนที่จะอัดแน่นบนจอเล็กหรือดูลอยห่างบนจอใหญ่ */
+#app.board .betting-track{
+  margin-top:14px;height:36vh;display:flex;flex-direction:column;
+}
+#app.board .betting-track .trackwrap{margin-bottom:0;flex:1;min-height:0;display:flex;flex-direction:column}
+#app.board .betting-track .trackarea{flex:1;min-height:0}
+#app.board .betting-track .track{height:100%}
+#app.board .betting-track .lane{height:100%;display:flex;flex-direction:column}
+#app.board .betting-track .cell{flex:1 1 0;height:auto;min-height:0;font-size:1.3vh}
+#app.board .betting-track .cell.star{font-size:1.7vh}
+#app.board .betting-track .chip{height:calc(100% / 14)}
+#app.board .betting-track .chip .dot{width:1.9vh;height:1.9vh;font-size:0}
+#app.board .betting-track .finishband{height:1.1vh;margin-top:-.55vh}
+#app.board .betting-track .lanetags span{padding:.6vh .4vh;font-size:1.2vh}
