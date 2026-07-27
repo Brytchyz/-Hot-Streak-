@@ -104,7 +104,7 @@ function ticketBadge(t) {
 }
 
 /* ---------------- โต๊ะโป๊กเกอร์ (จอบอร์ด) ---------------- */
-function seatTable(players, currentId) {
+function seatTable(players, currentId, centerHtml = '') {
   const n = players.length;
   const seats = players.map((p, i) => {
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
@@ -117,7 +117,7 @@ function seatTable(players, currentId) {
         ${p.tickets?.length ? `<div class="seat-badges">${p.tickets.map(ticketBadge).join('')}</div>` : '<div class="seat-badges muted">ยังไม่แทง</div>'}
       </div>`;
   }).join('');
-  return `<div class="table-oval">${seats}</div>`;
+  return `<div class="table-oval">${seats}${centerHtml ? `<div class="table-center">${centerHtml}</div>` : ''}</div>`;
 }
 
 function deckGrid(deck) {

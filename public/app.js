@@ -183,30 +183,41 @@ function renderBetting() {
       b.onclick = () => send('draft', { stack: b.dataset.stack });
     });
   }
-  if (d.pending && d.pending.playerId === S.yourId && !document.querySelector('.sheet-choose')) {
-    sheetChooseSide(d.pending.ticket);
+  if (d.pending && d.pending.playerId === S.yourId) {
+    renderChooseSheet(d.pending);
+  } else {
+    document.querySelector('.sheet-choose')?.remove();
   }
 }
 
-function sheetChooseSide(t) {
-  const el = document.createElement('div');
-  el.className = 'sheet sheet-choose';
+// แผ่นเลือกด้าน — เลือกได้ สลับด้านซ้ำได้ แล้วต้องกด "ยืนยัน" ถึงจะส่งตาต่อไป
+function renderChooseSheet(pend) {
+  let el = document.querySelector('.sheet-choose');
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'sheet sheet-choose';
+    document.body.appendChild(el);
+  }
+  const t = pend.ticket, mode = pend.mode;
   el.innerHTML = `
     <div class="sheet-in">
-      <p class="eyebrow">คุณหยิบตั๋วใบนี้</p>
+      <p class="eyebrow">${mode ? 'เลือกด้านแล้ว — ยืนยันได้เลย' : 'คุณหยิบตั๋วใบนี้'}</p>
       <h2>เลือกด้าน ปลอดภัย หรือ เสี่ยง</h2>
-      <div class="stackcol" style="margin-bottom:16px">
-        <button style="all:unset;display:block" data-m="safe">${ticketEl(t, { mode: 'safe' })}</button>
-        <button style="all:unset;display:block" data-m="risky">${ticketEl(t, { mode: 'risky' })}</button>
+      <div class="stackcol" style="margin-bottom:14px">
+        <button style="all:unset;display:block" data-m="safe">${ticketEl(t, { mode: 'safe', badge: mode === 'safe' ? 'เลือกอยู่' : null })}</button>
+        <button style="all:unset;display:block" data-m="risky">${ticketEl(t, { mode: 'risky', badge: mode === 'risky' ? 'เลือกอยู่' : null })}</button>
       </div>
-      <p class="muted center" style="margin:0;font-size:13px">
+      <p class="muted center" style="margin:0 0 14px;font-size:13px">
         ${t.kind === 'mascot' ? 'ด้านเสี่ยงจ่ายหนักถ้าเข้าที่ 1 แต่ที่ 2–3 ได้น้อยลง' : 'ด้านเสี่ยงจ่ายหนักถ้าทายถูก แต่ทายผิดเสียเงิน'}
       </p>
+      <button class="btn" id="confirmDraft" ${mode ? '' : 'disabled'} style="margin-bottom:10px">ยืนยัน ไปคนต่อไป</button>
+      <button class="btn ghost sm" id="cancelDraft">ยกเลิก หยิบใบอื่นแทน</button>
     </div>`;
-  document.body.appendChild(el);
   el.querySelectorAll('[data-m]').forEach((b) => {
-    b.onclick = () => { send('side', { mode: b.dataset.m }); el.remove(); };
+    b.onclick = () => send('side', { mode: b.dataset.m });
   });
+  el.querySelector('#confirmDraft').onclick = () => { if (mode) send('confirmDraft'); };
+  el.querySelector('#cancelDraft').onclick = () => send('cancelDraft');
 }
 
 /* ---------------- ไพ่ในมือ (แสดงอย่างเดียว) ---------------- */

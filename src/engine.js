@@ -90,15 +90,31 @@ class Game {
     if (!cur || cur.id !== playerId) throw new Error('ยังไม่ถึงตาคุณ');
     const stack = this.stacks[stackKey];
     if (!stack || !stack.length) throw new Error('กองนี้หมดแล้ว');
-    this.pendingTicket = { playerId, ticket: stack.shift() };
+    this.pendingTicket = { playerId, stackKey, ticket: stack.shift() };
     return this.pendingTicket;
   }
 
+  // ยังไม่ชอบตั๋วที่หยิบมา — ใส่คืนกองเดิม แล้วให้หยิบใบอื่นแทนได้ (ไม่เสียตา)
+  cancelDraft(playerId) {
+    if (!this.pendingTicket || this.pendingTicket.playerId !== playerId) throw new Error('ไม่มีตั๋วรอเลือก');
+    const { ticket, stackKey } = this.pendingTicket;
+    this.stacks[stackKey].unshift(ticket);
+    this.pendingTicket = null;
+  }
+
+  // เลือกด้าน (ยังไม่ยืนยัน — เปลี่ยนใจสลับด้านซ้ำได้ก่อนกดยืนยัน)
   chooseSide(playerId, mode) {
     if (!this.pendingTicket || this.pendingTicket.playerId !== playerId) throw new Error('ไม่มีตั๋วรอเลือก');
     if (!['safe', 'risky'].includes(mode)) throw new Error('ต้องเป็น safe หรือ risky');
+    this.pendingTicket.mode = mode;
+  }
+
+  // ยืนยันตั๋ว+ด้านที่เลือก — ใส่เข้ามือจริง แล้วส่งตาให้คนต่อไป
+  confirmDraft(playerId) {
+    if (!this.pendingTicket || this.pendingTicket.playerId !== playerId) throw new Error('ไม่มีตั๋วรอเลือก');
+    if (!this.pendingTicket.mode) throw new Error('ยังไม่ได้เลือก ปลอดภัย/เสี่ยง');
     const p = this.player(playerId);
-    p.tickets.push({ ...this.pendingTicket.ticket, mode });
+    p.tickets.push({ ...this.pendingTicket.ticket, mode: this.pendingTicket.mode });
     this.pendingTicket = null;
     this.draftIndex += 1;
     if (this.draftIndex >= this.draftOrder.length) this.beginSubmit();
@@ -491,7 +507,7 @@ class Game {
         ? {
             currentPlayerId: this.currentDrafter?.id ?? null,
             pending: this.pendingTicket
-              ? { playerId: this.pendingTicket.playerId, ticket: this.pendingTicket.ticket }
+              ? { playerId: this.pendingTicket.playerId, ticket: this.pendingTicket.ticket, mode: this.pendingTicket.mode ?? null }
               : null,
             picksLeft: this.draftOrder.length - this.draftIndex,
           }

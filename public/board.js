@@ -109,15 +109,16 @@ function renderBetting() {
 
   const startMascots = ORDER.map((id, lane) => ({ id, lane, pos: g.track.start, facing: 1, fallen: false, status: 'racing' }));
 
+  const centerDeck = `
+    <p class="eyebrow center" style="margin:0 0 6px">สำรับที่ทุกคนเห็น</p>
+    ${deckGrid(g.raceDeck)}`;
+
   app.innerHTML = `
     <p class="eyebrow center">ตาของ</p>
     <h1 class="center" style="margin-bottom:14px">${esc(turnName)}</h1>
-    ${seatTable(g.players, d.currentPlayerId)}
+    ${seatTable(g.players, d.currentPlayerId, centerDeck)}
 
-    <div id="trk" style="margin-top:18px">${buildTrack(g)}</div>
-
-    <h2 style="margin-top:26px">สำรับที่ทุกคนเห็น</h2>
-    ${deckGrid(g.raceDeck)}
+    <div id="trk" style="margin-top:22px">${buildTrack(g)}</div>
 
     <h2 style="margin-top:26px">เดิมพันตัวมาสคอต</h2>
     <div class="stackcol">${mascotStacks}</div>

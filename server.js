@@ -198,7 +198,9 @@ io.on('connection', (socket) => {
   }));
 
   socket.on('draft', guard(({ stack }) => room.game.draftTicket(me.id, stack)));
+  socket.on('cancelDraft', guard(() => room.game.cancelDraft(me.id)));
   socket.on('side', guard(({ mode }) => room.game.chooseSide(me.id, mode)));
+  socket.on('confirmDraft', guard(() => room.game.confirmDraft(me.id)));
   socket.on('submit', guard(({ uids }) => room.game.submitCards(me.id, uids)));
   socket.on('double', guard(({ ticketId }) => room.game.setDouble(me.id, ticketId)));
 
