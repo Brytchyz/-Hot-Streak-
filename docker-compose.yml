@@ -1,0 +1,10 @@
+services:
+  hotstreak:
+    build: .
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      # ตั้งเป็นลิงก์จริงถ้าอยู่หลัง reverse proxy เช่น https://games.example.com
+      # PUBLIC_URL: https://games.example.com
+      PORT: 3000

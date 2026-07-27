@@ -1,0 +1,28 @@
+{
+  "name": "hot-streak-mobile",
+  "version": "1.0.0",
+  "description": "เกมแข่งมาสคอตแบบเล่นบนมือถือหลายเครื่อง",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "sim": "node test/sim.js",
+    "e2e": "node test/e2e.js",
+    "demo": "node test/demo.js",
+    "tunnel": "node tunnel.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.1"
+  },
+  "optionalDependencies": {
+    "cloudflared": "^0.7.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

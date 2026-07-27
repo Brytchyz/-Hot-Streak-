@@ -1,0 +1,11 @@
+# กด "New > Blueprint" ใน Render แล้วชี้มาที่ repo นี้ จบ
+services:
+  - type: web
+    name: hot-streak
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev --ignore-scripts
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
