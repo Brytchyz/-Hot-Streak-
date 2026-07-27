@@ -33,6 +33,7 @@ class Room {
   constructor(code) {
     this.code = code;
     this.players = [];   // { id, name, socketId, connected }
+    this.spectators = []; // socketId ของจอบอร์ด — ดูอย่างเดียว ไม่มี identity/tickets/hand
     this.hostId = null;
     this.game = null;
     this.autoplay = false;
@@ -93,6 +94,11 @@ class Room {
         autoplay: this.autoplay,
       });
     }
+    for (const sid of this.spectators) {
+      io.to(sid).emit('state', {
+        lobby, game: pub, you: null, yourId: null, isHost: false, autoplay: this.autoplay,
+      });
+    }
   }
 
   stopAuto() {
@@ -122,8 +128,19 @@ class Room {
 io.on('connection', (socket) => {
   let room = null;
   let me = null;
+  let isSpectator = false;
 
   const fail = (msg) => socket.emit('err', msg);
+
+  socket.on('watch', ({ code }) => {
+    const r = rooms.get((code || '').toUpperCase().trim());
+    if (!r) return fail('ไม่พบห้องนี้ ลองเช็ครหัสอีกที');
+    room = r;
+    isSpectator = true;
+    r.spectators.push(socket.id);
+    socket.join(r.code);
+    r.broadcast();
+  });
 
   const attach = (r, player) => {
     room = r;
@@ -203,6 +220,10 @@ io.on('connection', (socket) => {
   }));
 
   socket.on('disconnect', () => {
+    if (isSpectator) {
+      if (room) room.spectators = room.spectators.filter((sid) => sid !== socket.id);
+      return;
+    }
     if (!room || !me) return;
     me.connected = false;
     me.socketId = null;

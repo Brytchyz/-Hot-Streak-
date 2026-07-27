@@ -1,0 +1,9 @@
+/* ============================================================
+   Hot Streak — จอบอร์ด (ปรับ layout ให้กว้างขึ้นสำหรับจอคอม/ทีวี)
+   ============================================================ */
+body{ padding-bottom:0; }
+#app.board{
+  max-width:920px; margin:0 auto; padding:32px 28px 60px;
+}
+#app.board h1{ font-size:34px; }
+#app.board .deckgrid{ grid-template-columns:repeat(4,1fr); }
