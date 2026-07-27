@@ -36,6 +36,10 @@ socket.on('joined', ({ code }) => {
   if (location.search) history.replaceState(null, '', location.pathname);
 });
 socket.on('state', (s) => { S = s; render(); });
+socket.on('ended', () => {
+  localStorage.removeItem('hs_room');
+  location.href = location.pathname; // รีโหลดหน้าแรกสะอาดๆ ไม่ให้ค้างอยู่ห้องเก่า
+});
 socket.on('connect', () => {
   const room = inviteCode || localStorage.getItem('hs_room');
   if (room && savedName()) send('join', { code: room, name: savedName(), playerId: pid, origin: ORIGIN });
@@ -431,9 +435,15 @@ function renderResults() {
         </div>`).join('')}
     </div>
     <div class="dock"><div class="dock-inner">
-      ${S.isHost ? '<button class="btn" id="rm">เล่นอีกรอบ</button>' : '<p class="center muted" style="margin:0">รอเจ้ามือเริ่มรอบใหม่</p>'}
+      ${S.isHost
+        ? `<div class="row">
+             <button class="btn" id="rm">เล่นอีกรอบ</button>
+             <button class="btn ghost" id="end" style="flex:0 0 34%">จบเกม</button>
+           </div>`
+        : '<p class="center muted" style="margin:0">รอเจ้ามือเริ่มรอบใหม่</p>'}
     </div></div>`;
   if ($('#rm')) $('#rm').onclick = () => send('rematch');
+  if ($('#end')) $('#end').onclick = () => send('end');
 }
 
 renderHome();

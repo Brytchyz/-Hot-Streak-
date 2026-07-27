@@ -219,6 +219,15 @@ io.on('connection', (socket) => {
     room.game.start();
   }));
 
+  // จบเกม — เจ้ามือปิดห้องนี้ถาวร ทุกคน (ผู้เล่น+จอบอร์ด) เด้งกลับหน้าแรก
+  socket.on('end', () => {
+    if (!room || !me) return fail('ยังไม่ได้เข้าห้อง');
+    if (me.id !== room.hostId) return fail('เฉพาะเจ้าของห้องเท่านั้น');
+    room.stopAuto();
+    io.to(room.code).emit('ended');
+    rooms.delete(room.code);
+  });
+
   socket.on('disconnect', () => {
     if (isSpectator) {
       if (room) room.spectators = room.spectators.filter((sid) => sid !== socket.id);

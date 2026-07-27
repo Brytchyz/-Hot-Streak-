@@ -25,6 +25,7 @@ function codeForm(msg) {
 
 socket.on('err', (msg) => codeForm(msg));
 socket.on('state', (s) => { S = s; render(); });
+socket.on('ended', () => { S = null; codeForm('เกมจบแล้ว — ใส่รหัสห้องใหม่ถ้าจะดูต่อ'); });
 socket.on('connect', () => { if (roomCode) watch(roomCode); else codeForm(); });
 
 /* ============================================================
