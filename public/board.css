@@ -12,11 +12,16 @@ body{ padding-bottom:0; }
 #app.board h1{ font-size:34px; }
 #app.board .deckgrid{ grid-template-columns:repeat(4,1fr); }
 
-/* ---------- หน้าวางเดิมพัน: โต๊ะ · สนาม · มาสคอต · พิเศษ เรียง 4 คอลัมน์ (ยัดในจอเดียว ไม่เลื่อน) ---------- */
+/* ---------- หน้าวางเดิมพัน: โต๊ะ · สนาม · มาสคอต · พิเศษ
+   ปกติเรียง 4 คอลัมน์ในแถวเดียว แต่ถ้าจอถูกบีบแคบลง แต่ละ section
+   จะขึ้นบรรทัดใหม่แทนที่จะถูกอัดให้แคบลงเรื่อย ๆ ---------- */
 #app.board .betting-grid{
-  display:grid;grid-template-columns:1.3fr .65fr .85fr .75fr;gap:20px;
-  align-items:start;margin-top:6px;
+  display:flex;flex-wrap:wrap;gap:20px;
+  align-items:flex-start;margin-top:6px;
 }
+#app.board .betting-table{flex:1 1 420px;min-width:320px}
+#app.board .betting-track-col{flex:1 1 220px;min-width:180px}
+#app.board .betting-col{flex:1 1 260px;min-width:220px}
 #app.board .betting-col h2{margin-top:0;font-size:16px}
 #app.board .betting-col .stackcol{gap:6px}
 #app.board .betting-track-col .eyebrow{text-align:center}
