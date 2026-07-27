@@ -147,7 +147,6 @@ function renderBetting() {
   app.innerHTML = `
     <p class="eyebrow">${myTurn ? 'ตาคุณเลือกตั๋ว' : 'กำลังรอ ' + esc(turnName)}</p>
     <h2>${myTurn ? 'หยิบตั๋ว 1 ใบจากกองไหนก็ได้' : 'สนามพนัน'}</h2>
-    <button class="btn ghost sm" id="peek" style="margin-bottom:16px">ดูสำรับ / ไพ่ในมือ ก่อนแทง</button>
 
     <div class="stackcol">${mascotStacks}</div>
 
@@ -157,6 +156,9 @@ function renderBetting() {
     </div>
 
     <div class="stackcol">${sideStacks}</div>
+
+    <h2 style="margin-top:22px">ไพ่ในมือคุณ</h2>
+    ${handPeek(S.you.hand)}
 
     <h2 style="margin-top:22px">ตั๋วในมือคุณ</h2>
     ${(S.you.tickets || []).length
@@ -176,7 +178,6 @@ function renderBetting() {
         </div>`).join('')}
     </div>`;
 
-  if ($('#peek')) $('#peek').onclick = () => sheetPeek('deck');
   if (myTurn && !d.pending) {
     app.querySelectorAll('[data-stack]').forEach((b) => {
       b.onclick = () => send('draft', { stack: b.dataset.stack });
@@ -188,7 +189,6 @@ function renderBetting() {
 }
 
 function sheetChooseSide(t) {
-  document.querySelector('.sheet-peek')?.remove();
   const el = document.createElement('div');
   el.className = 'sheet sheet-choose';
   el.innerHTML = `
@@ -209,7 +209,7 @@ function sheetChooseSide(t) {
   });
 }
 
-/* ---------------- แอบดูสำรับ/ไพ่ในมือ ก่อนแทง ---------------- */
+/* ---------------- ไพ่ในมือ (แสดงอย่างเดียว) ---------------- */
 function handPeek(hand) {
   if (!hand || !hand.length) return '<p class="muted center" style="margin:0">ไม่มีไพ่ในมือ</p>';
   return `<div class="hand">
@@ -221,32 +221,6 @@ function handPeek(hand) {
       </div>`;
     }).join('')}
   </div>`;
-}
-
-function sheetPeek(tab = 'deck') {
-  document.querySelector('.sheet-peek')?.remove();
-  const el = document.createElement('div');
-  el.className = 'sheet sheet-peek';
-  el.onclick = (e) => { if (e.target === el) el.remove(); };
-  const draw = () => {
-    el.innerHTML = `
-      <div class="sheet-in">
-        <div class="row" style="margin-bottom:14px">
-          <button class="btn ${tab === 'deck' ? '' : 'ghost'} sm" data-tab="deck">สำรับที่ทุกคนเห็น</button>
-          <button class="btn ${tab === 'hand' ? '' : 'ghost'} sm" data-tab="hand">ไพ่ในมือคุณ</button>
-        </div>
-        <div style="max-height:58vh;overflow-y:auto">
-          ${tab === 'deck' ? deckGrid(S.game.raceDeck) : handPeek(S.you.hand)}
-        </div>
-        <button class="btn ghost sm" id="peekClose" style="margin-top:14px">ปิด</button>
-      </div>`;
-    el.querySelectorAll('[data-tab]').forEach((b) => {
-      b.onclick = () => { tab = b.dataset.tab; draw(); };
-    });
-    el.querySelector('#peekClose').onclick = () => el.remove();
-  };
-  draw();
-  document.body.appendChild(el);
 }
 
 /* ---------------- แอบใส่ไพ่ ---------------- */

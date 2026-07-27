@@ -107,10 +107,17 @@ function renderBetting() {
   const mascotStacks = ORDER.map(stackBlock).join('');
   const sideStacks = ['YES', 'NO'].map(stackBlock).join('');
 
+  const startMascots = ORDER.map((id, lane) => ({ id, lane, pos: g.track.start, facing: 1, fallen: false, status: 'racing' }));
+
   app.innerHTML = `
     <p class="eyebrow center">ตาของ</p>
     <h1 class="center" style="margin-bottom:14px">${esc(turnName)}</h1>
     ${seatTable(g.players, d.currentPlayerId)}
+
+    <div id="trk" style="margin-top:18px">${buildTrack(g)}</div>
+
+    <h2 style="margin-top:26px">สำรับที่ทุกคนเห็น</h2>
+    ${deckGrid(g.raceDeck)}
 
     <h2 style="margin-top:26px">เดิมพันตัวมาสคอต</h2>
     <div class="stackcol">${mascotStacks}</div>
@@ -121,6 +128,7 @@ function renderBetting() {
     </div>
 
     <div class="stackcol">${sideStacks}</div>`;
+  updateTrack({ track: g.track, mascots: startMascots });
 }
 
 function renderSubmit() {
