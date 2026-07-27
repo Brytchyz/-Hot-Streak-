@@ -120,6 +120,7 @@ input.code{
   padding:3px 1px;color:#fff;border-radius:3px;align-self:stretch;
   display:flex;align-items:center;justify-content:center;min-width:19px;
 }
+.ticket .tk-icon{width:34px;height:34px;object-fit:contain;flex:0 0 auto}
 .ticket .tk-body{flex:1;min-width:0}
 .ticket .tk-name{font-family:var(--disp);font-weight:700;font-size:15px;line-height:1.2}
 .ticket .tk-size{font-size:11px;color:#6B665A;letter-spacing:.04em}
@@ -187,7 +188,9 @@ input.code{
   border:1.5px solid rgba(255,255,255,.55);
   box-shadow:0 2px 5px rgba(0,0,0,.4);
   transition:transform .25s,opacity .25s;
+  overflow:hidden;
 }
+.chip .dot-icon{width:78%;height:78%;object-fit:contain;pointer-events:none}
 .chip.back .dot{transform:rotate(180deg)}
 .chip.back .dot::after{content:"";position:absolute;inset:-5px;border:1.5px dashed var(--flag);border-radius:50%}
 .chip.fallen .dot{transform:rotate(74deg) scale(.82);opacity:.75}

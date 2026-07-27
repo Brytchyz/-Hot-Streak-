@@ -2,10 +2,10 @@
    Hot Streak — shared render helpers (ใช้ทั้งฝั่งมือถือและจอบอร์ด)
    ============================================================ */
 const M = {
-  gobbler: { th: 'ก็อบเบลอร์', short: 'ก', color: 'var(--gobbler)', hex: '#E8712C' },
-  hurley:  { th: 'เฮอร์ลีย์',  short: 'ฮ', color: 'var(--hurley)',  hex: '#E4635A' },
-  dangle:  { th: 'แดงเกิล',    short: 'ด', color: 'var(--dangle)',  hex: '#4E7BD6' },
-  mum:     { th: 'มัม',        short: 'ม', color: 'var(--mum)',     hex: '#B23A5E' },
+  gobbler: { th: 'ก็อบเบลอร์', short: 'ก', color: 'var(--gobbler)', hex: '#E8712C', icon: 'icons/gobbler.png' },
+  hurley:  { th: 'เฮอร์ลีย์',  short: 'ฮ', color: 'var(--hurley)',  hex: '#E4635A', icon: 'icons/hurley.png' },
+  dangle:  { th: 'แดงเกิล',    short: 'ด', color: 'var(--dangle)',  hex: '#4E7BD6', icon: 'icons/dangle.png' },
+  mum:     { th: 'มัม',        short: 'ม', color: 'var(--mum)',     hex: '#B23A5E', icon: 'icons/mum.png' },
 };
 const ORDER = ['gobbler', 'hurley', 'dangle', 'mum'];
 const SIZE_TH = { top: 'ตั๋วบน', middle: 'ตั๋วกลาง', bottom: 'ตั๋วล่าง' };
@@ -86,6 +86,7 @@ function ticketEl(t, { mode = null, pickable = false, badge = null } = {}) {
     <div class="ticket ${m === 'risky' ? 'risky' : ''} ${pickable ? 'pickable' : ''}">
       ${badge ? `<span class="tk-badge">${badge}</span>` : ''}
       <span class="tk-flag" style="background:${hex}">${m === 'risky' ? 'RISKY' : 'SAFE'}</span>
+      ${isMascot ? `<img class="tk-icon" src="${meta.icon}" alt="">` : ''}
       <span class="tk-body">
         <span class="tk-name">${name}</span>
         <span class="tk-size">${SIZE_TH[t.size]}</span>
@@ -160,7 +161,7 @@ function buildTrack(g) {
         <div class="chips">
         ${ORDER.map((id) => `
           <div class="chip" id="chip-${id}">
-            <span class="dot" style="background:${M[id].hex}">${M[id].short}</span>
+            <span class="dot" style="background:${M[id].hex}"><img class="dot-icon" src="${M[id].icon}" alt="${M[id].th}"></span>
           </div>`).join('')}
         </div>
       </div>
